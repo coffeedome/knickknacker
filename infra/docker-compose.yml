@@ -13,3 +13,8 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
       POSTGRES_DB: knickknackerdb
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
