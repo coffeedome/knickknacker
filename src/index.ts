@@ -6,7 +6,7 @@ const port = process.env.PORT || 8080;
 
 server.use(express.json());
 
-server.post("/api/v1/items", itemsRouter);
+server.use("/api/v1/items", itemsRouter);
 
 server.listen(port, () => {
   console.log(`Knickknacker server running on port ${port}`);
