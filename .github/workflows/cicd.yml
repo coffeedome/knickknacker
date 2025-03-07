@@ -163,12 +163,12 @@ jobs:
           fail-on-severity: critical
 
       - name: Setup CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript, typescript
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@3
 
       - name: Run npm audit
         run: npm audit --json > npm-audit.json || true
