@@ -2,6 +2,7 @@
   "name": "knickknacker",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "npx jest",
     "test:coverage": "npx jest --coverage",
