@@ -1,0 +1,195 @@
+name: pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      node_modules_cache_key: ${{ steps.cache-node-modules.outputs.cache-primary-key }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Upload node_modules
+        uses: actions/upload-artifact@v3
+        with:
+          name: node_modules
+          path: node_modules/
+          retention-days: 1
+
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22.x"
+
+      - name: Restore node_modules from cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ needs.setup.outputs.node_modules_cache_key }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      - name: Download node_modules artifact if cache miss
+        if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
+        uses: actions/download-artifact@v3
+        with:
+          name: node_modules
+          path: node_modules/
+
+      - name: Type checking
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run linting
+        run: npm run lint --if-present
+
+      - name: Generate test coverage report
+        run: npm run test:coverage --if-present
+
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-coverage
+          path: coverage/
+          retention-days: 7
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22.x"
+
+      # Restore node_modules from cache
+      - name: Restore node_modules from cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ needs.setup.outputs.node_modules_cache_key }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      # If cache miss, download node_modules artifact
+      - name: Download node_modules artifact if cache miss
+        if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
+        uses: actions/download-artifact@v3
+        with:
+          name: node_modules
+          path: node_modules/
+
+      # Build project
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifact
+          path: dist/
+          retention-days: 7
+
+  security:
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22.x"
+
+      # Restore node_modules from cache
+      - name: Restore node_modules from cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ needs.setup.outputs.node_modules_cache_key }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      # If cache miss, download node_modules artifact
+      - name: Download node_modules artifact if cache miss
+        if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
+        uses: actions/download-artifact@v3
+        with:
+          name: node_modules
+          path: node_modules/
+
+      # GitHub Dependency Review to check for vulnerable dependencies
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+        with:
+          fail-on-severity: critical
+
+      # GitHub CodeQL for code scanning (results appear in Security tab)
+      - name: Setup CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript, typescript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+      # Run npm audit and format results for GitHub
+      - name: Run npm audit
+        run: npm audit --json > npm-audit.json || true
+
+      # Upload npm audit results as an artifact
+      - name: Upload npm audit results
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-audit-report
+          path: npm-audit.json
+
+  deploy:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    needs: [build, security]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22.x"
+
+    # Download the build artifacts from the buil

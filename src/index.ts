@@ -10,7 +10,6 @@ server.use(express.json());
 server.use(morgan("combined"));
 
 server.use("/api/v1/user", userRouter);
-
 server.use("/api/v1/item", itemRouter);
 
 server.listen(port, () => {
