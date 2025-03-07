@@ -15,7 +15,7 @@ test("starts express server", () => {
     body: { firstname: "James", lastname: "Smith", age: 34 },
   });
 
-  const { res, next, clearMockRes } = getMockRes();
+  const { res } = getMockRes();
 
   //call
   createKnickKnackHandler(req, res);

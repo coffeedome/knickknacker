@@ -3,6 +3,6 @@ import { createKnickKnackHandler } from "../controllers/itemController";
 
 const router = express.Router();
 
-router.post("/api/v1/items", createKnickKnackHandler);
+router.post("/", createKnickKnackHandler);
 
-export default router;
+export { router as itemRouter };

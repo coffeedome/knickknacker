@@ -1,9 +1,8 @@
 import prisma from "../client";
 import { Item, Prisma } from "@prisma/client";
 
-export async function getAllItems() {
-  const allItems = await prisma.item.findMany();
-  console.log(allItems);
+export async function getAllItems(): Promise<Item[]> {
+  return await prisma.item.findMany();
 }
 
 export async function createItem(data: Prisma.ItemCreateInput): Promise<Item> {
