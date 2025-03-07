@@ -50,7 +50,7 @@ jobs:
           node-version: "22.x"
 
       - name: Restore node_modules from cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ needs.setup.outputs.node_modules_cache_key }}
@@ -97,7 +97,7 @@ jobs:
 
       # Restore node_modules from cache
       - name: Restore node_modules from cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ needs.setup.outputs.node_modules_cache_key }}
@@ -136,7 +136,7 @@ jobs:
           node-version: "22.x"
 
       - name: Restore node_modules from cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ needs.setup.outputs.node_modules_cache_key }}
