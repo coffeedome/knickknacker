@@ -5,6 +5,12 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  pull-requests: read
+
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -96,7 +102,6 @@ jobs:
         with:
           node-version: "22.x"
 
-      # Restore node_modules from cache
       - name: Restore node_modules from cache
         id: cache-node-modules-restore
         uses: actions/cache@v4
@@ -106,7 +111,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
-      # If cache miss, download node_modules artifact
       - name: Download node_modules artifact if cache miss
         if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
         uses: actions/download-artifact@v4
@@ -114,7 +118,6 @@ jobs:
           name: node_modules
           path: node_modules/
 
-      # Build project
       - name: Build
         run: npm run build --if-present
 
@@ -153,7 +156,6 @@ jobs:
           name: node_modules
           path: node_modules/
 
-      # Only run dependency review on pull requests (where base_ref and head_ref are available)
       - name: Dependency Review
         if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@v3
