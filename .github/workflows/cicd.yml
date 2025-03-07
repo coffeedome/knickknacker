@@ -153,7 +153,9 @@ jobs:
           name: node_modules
           path: node_modules/
 
+      # Only run dependency review on pull requests (where base_ref and head_ref are available)
       - name: Dependency Review
+        if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@v3
         with:
           fail-on-severity: critical
