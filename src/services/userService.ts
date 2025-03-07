@@ -1,5 +1,5 @@
 import { Prisma, User } from "@prisma/client";
-import * as userRepository from "../db/repositories/userRepository";
+import * as userRepository from "../db/repositories/userRepository.js";
 
 export async function addUser(userData: Prisma.UserCreateInput): Promise<User> {
   return await userRepository.addUser(userData);

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as itemsService from "../services/itemsService";
+import * as itemsService from "../services/itemsService.js";
 
 export async function createKnickKnackHandler(
   req: Request,

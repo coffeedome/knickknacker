@@ -1,5 +1,5 @@
 import express from "express";
-import { createKnickKnackHandler } from "../controllers/itemController";
+import { createKnickKnackHandler } from "../controllers/itemController.js";
 
 const router = express.Router();
 

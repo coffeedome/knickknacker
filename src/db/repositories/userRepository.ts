@@ -1,4 +1,4 @@
-import prisma from "../client";
+import prisma from "../client.js";
 import { Prisma, User } from "@prisma/client";
 
 export async function addUser(data: Prisma.UserCreateInput): Promise<User> {

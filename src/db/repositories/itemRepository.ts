@@ -1,4 +1,4 @@
-import prisma from "../client";
+import prisma from "../client.js";
 import { Item, Prisma } from "@prisma/client";
 
 export async function getAllItems(): Promise<Item[]> {

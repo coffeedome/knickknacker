@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as userService from "../services/userService";
+import * as userService from "../services/userService.js";
 import { User } from "@prisma/client";
 
 export async function createNewUser(req: Request, res: Response): Promise<any> {
