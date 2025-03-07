@@ -168,7 +168,7 @@ jobs:
           languages: javascript, typescript
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@3
+        uses: github/codeql-action/analyze@v3
 
       - name: Run npm audit
         run: npm audit --json > npm-audit.json || true
