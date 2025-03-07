@@ -1,5 +1,4 @@
-name: pipeline
-
+name: knickknacker pipeline
 on:
   push:
     branches: [main, develop]
@@ -26,13 +25,13 @@ jobs:
 
       - name: Cache node_modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v2
         with:
           path: node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
 
       - name: Upload node_modules
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: node_modules
           path: node_modules/
@@ -60,7 +59,7 @@ jobs:
 
       - name: Download node_modules artifact if cache miss
         if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v2
         with:
           name: node_modules
           path: node_modules/
@@ -136,7 +135,6 @@ jobs:
         with:
           node-version: "22.x"
 
-      # Restore node_modules from cache
       - name: Restore node_modules from cache
         uses: actions/cache@v3
         with:
@@ -145,7 +143,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
-      # If cache miss, download node_modules artifact
       - name: Download node_modules artifact if cache miss
         if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
         uses: actions/download-artifact@v3
@@ -153,13 +150,11 @@ jobs:
           name: node_modules
           path: node_modules/
 
-      # GitHub Dependency Review to check for vulnerable dependencies
       - name: Dependency Review
         uses: actions/dependency-review-action@v3
         with:
           fail-on-severity: critical
 
-      # GitHub CodeQL for code scanning (results appear in Security tab)
       - name: Setup CodeQL
         uses: github/codeql-action/init@v2
         with:
@@ -168,11 +163,9 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
 
-      # Run npm audit and format results for GitHub
       - name: Run npm audit
         run: npm audit --json > npm-audit.json || true
 
-      # Upload npm audit results as an artifact
       - name: Upload npm audit results
         uses: actions/upload-artifact@v3
         with:
@@ -192,4 +185,16 @@ jobs:
         with:
           node-version: "22.x"
 
-    # Download the build artifacts from the buil
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifact
+          path: dist/
+
+      - name: Deploy
+        run: |
+          echo "Add your deployment commands here"
+          # Examples:
+          # - npm publish (for publishing to npm)
+          # - aws s3 sync ./dist s3://your-bucket/ (for AWS S3)
+          # - firebase deploy (for Firebase)
