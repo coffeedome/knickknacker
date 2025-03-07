@@ -59,7 +59,7 @@ jobs:
 
       - name: Download node_modules artifact if cache miss
         if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: node_modules
           path: node_modules/
@@ -107,7 +107,7 @@ jobs:
       # If cache miss, download node_modules artifact
       - name: Download node_modules artifact if cache miss
         if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: node_modules
           path: node_modules/
@@ -145,7 +145,7 @@ jobs:
 
       - name: Download node_modules artifact if cache miss
         if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: node_modules
           path: node_modules/
@@ -186,7 +186,7 @@ jobs:
           node-version: "22.x"
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-artifact
           path: dist/
