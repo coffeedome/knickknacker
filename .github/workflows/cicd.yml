@@ -33,15 +33,10 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v4
         with:
-          path: node_modules
+          path: |
+            node_modules
+            packages/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Upload node_modules
-        uses: actions/upload-artifact@v4
-        with:
-          name: node_modules
-          path: node_modules/
-          retention-days: 1
 
   test:
     needs: setup
@@ -56,23 +51,17 @@ jobs:
           node-version: "22.x"
 
       - name: Restore node_modules from cache
-        id: cache-node-modules-restore
         uses: actions/cache@v4
         with:
-          path: node_modules
+          path: |
+            node_modules
+            packages/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
-
-      - name: Download node_modules artifact if cache miss
-        if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: node_modules
-          path: node_modules/
 
       - name: Type checking
-        run: npx tsc --noEmit
+        run: |
+          npx tsc --noEmit --project packages/frontend
+          npx tsc --noEmit --project packages/backend
 
       - name: Run tests
         run: npm test
@@ -87,10 +76,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-coverage
-          path: coverage/
+          path: packages/*/coverage/
           retention-days: 7
 
-  build:
+  build-frontend:
     needs: test
     runs-on: ubuntu-latest
 
@@ -103,29 +92,51 @@ jobs:
           node-version: "22.x"
 
       - name: Restore node_modules from cache
-        id: cache-node-modules-restore
         uses: actions/cache@v4
         with:
-          path: node_modules
+          path: |
+            node_modules
+            packages/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
 
-      - name: Download node_modules artifact if cache miss
-        if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: node_modules
-          path: node_modules/
+      - name: Build frontend
+        run: npm run build --workspace=packages/frontend
 
-      - name: Build
-        run: npm run build --if-present
-
-      - name: Upload build artifacts
+      - name: Upload frontend build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifact
-          path: dist/
+          name: frontend-build
+          path: packages/frontend/dist/
+          retention-days: 7
+
+  build-backend:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: "22.x"
+
+      - name: Restore node_modules from cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Build backend
+        run: npm run build --workspace=packages/backend
+
+      - name: Upload backend build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: packages/backend/dist/
           retention-days: 7
 
   security:
@@ -141,20 +152,12 @@ jobs:
           node-version: "22.x"
 
       - name: Restore node_modules from cache
-        id: cache-node-modules-restore
         uses: actions/cache@v4
         with:
-          path: node_modules
+          path: |
+            node_modules
+            packages/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-modules-
-
-      - name: Download node_modules artifact if cache miss
-        if: steps.cache-node-modules-restore.outputs.cache-hit != 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: node_modules
-          path: node_modules/
 
       - name: Dependency Review
         if: github.event_name == 'pull_request'
@@ -171,7 +174,7 @@ jobs:
         uses: github/codeql-action/analyze@v3
 
       - name: Run npm audit
-        run: npm audit --json > npm-audit.json || true
+        run: npm audit --workspaces --json > npm-audit.json || true
 
       - name: Upload npm audit results
         uses: actions/upload-artifact@v4
@@ -181,7 +184,7 @@ jobs:
 
   deploy:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    needs: [build, security]
+    needs: [build-frontend, build-backend, security]
     runs-on: ubuntu-latest
 
     steps:
@@ -192,16 +195,24 @@ jobs:
         with:
           node-version: "22.x"
 
-      - name: Download build artifacts
+      - name: Download frontend build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build-artifact
-          path: dist/
+          name: frontend-build
+          path: dist/frontend/
 
-      - name: Deploy
+      - name: Download backend build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-build
+          path: dist/backend/
+
+      - name: Deploy frontend
         run: |
-          echo "Add your deployment commands here"
-          # Examples:
-          # - npm publish (for publishing to npm)
-          # - aws s3 sync ./dist s3://your-bucket/ (for AWS S3)
-          # - firebase deploy (for Firebase)
+          echo "Add your frontend deployment commands here"
+          # Example: aws s3 sync ./dist/frontend s3://your-frontend-bucket/
+
+      - name: Deploy backend
+        run: |
+          echo "Add your backend deployment commands here"
+          # Example: aws elasticbeanstalk deploy ... or similar
