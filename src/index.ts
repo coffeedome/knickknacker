@@ -1,7 +1,8 @@
 import express from "express";
 import morgan from "morgan";
-import { itemRouter } from "./routes/itemRoutes.js";
-import { userRouter } from "./routes/userRoutes.js";
+
+import { itemRouter } from "./routes/itemRoutes";
+import { userRouter } from "./routes/userRoutes";
 
 const server = express();
 const port = process.env.PORT || 8080;
