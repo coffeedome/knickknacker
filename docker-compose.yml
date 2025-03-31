@@ -2,6 +2,16 @@
 version: '3.9'
 
 services:
+  ui:
+    build: ./frontend
+    ports:
+      - 3000:3000
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    depends_on:
+      - db
+
   db:
     image: postgres
     restart: always
